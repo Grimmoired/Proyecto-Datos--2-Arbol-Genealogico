@@ -1,0 +1,9 @@
+﻿<Application x:Class="Proyecto__2_Datos_Arbol_Genealogico.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Proyecto__2_Datos_Arbol_Genealogico"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+         
+    </Application.Resources>
+</Application>
