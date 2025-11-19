@@ -3,7 +3,7 @@ using System.Windows.Media.Imaging;
 using System.IO;
 using System.Globalization;
 
-namespace FamilyTreeWPF.Models
+namespace Proyecto__2_Datos_Arbol_Genealogico.Models
 {
     public class Person
     {
@@ -11,13 +11,12 @@ namespace FamilyTreeWPF.Models
         public string Cedula { get; set; } = "";
         public string FirstName { get; set; } = "";
         public string LastName { get; set; } = "";
-        public double Latitude { get; set; }  // degrees
-        public double Longitude { get; set; } // degrees
+        public double Latitude { get; set; }  
+        public double Longitude { get; set; }
         public DateTime DateOfBirth { get; set; }
         public DateTime? DateOfDeath { get; set; } = null;
         public BitmapImage Photo { get; set; } = null;
 
-        // Derived properties
         public int Age
         {
             get
