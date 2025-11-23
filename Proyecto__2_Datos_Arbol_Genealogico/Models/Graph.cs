@@ -15,10 +15,24 @@ namespace Proyecto__2_Datos_Arbol_Genealogico.Models
         }
     }
 
+    public class Edge<T>
+    {
+        public Node<T> From { get; }
+        public Node<T> To { get; }
+        public double Weight { get; }
+
+        public Edge(Node<T> from, Node<T> to, double weight)
+        {
+            From = from;
+            To = to;
+            Weight = weight;
+        }
+    }
+
     public class Graph<T>
     {
-        private readonly Dictionary<Guid, Node<T>> nodes = new Dictionary<Guid, Node<T>>();
-        private readonly Dictionary<Guid, List<Edge<T>>> adj = new Dictionary<Guid, List<Edge<T>>>();
+        private readonly Dictionary<Guid, Node<T>> nodes = new();
+        private readonly Dictionary<Guid, List<Edge<T>>> adj = new();
 
         public IEnumerable<Node<T>> Nodes => nodes.Values;
 
@@ -30,60 +44,63 @@ namespace Proyecto__2_Datos_Arbol_Genealogico.Models
             return node;
         }
 
-        public bool RemoveNode(Guid nodeId)
+        public Node<T>? GetNode(Guid id)
         {
-            if (!nodes.ContainsKey(nodeId)) return false;
-            nodes.Remove(nodeId);
-            adj.Remove(nodeId);
+            nodes.TryGetValue(id, out var n);
+            return n;
+        }
+
+        public bool RemoveNode(Guid id)
+        {
+            if (!nodes.ContainsKey(id)) return false;
+            nodes.Remove(id);
+            adj.Remove(id);
             foreach (var list in adj.Values)
-            {
-                list.RemoveAll(e => e.From.Id == nodeId || e.To.Id == nodeId);
-            }
+                list.RemoveAll(e => e.To.Id == id || e.From.Id == id);
             return true;
         }
 
         public Edge<T> AddEdge(Node<T> from, Node<T> to, double weight = 1.0, bool undirected = true)
         {
             if (!nodes.ContainsKey(from.Id) || !nodes.ContainsKey(to.Id))
-                throw new InvalidOperationException("Node not present in graph.");
+                throw new InvalidOperationException("Intento de conectar nodos no existentes.");
 
             var e = new Edge<T>(from, to, weight);
             adj[from.Id].Add(e);
+
             if (undirected)
             {
                 var e2 = new Edge<T>(to, from, weight);
                 adj[to.Id].Add(e2);
             }
+
             return e;
         }
 
         public IEnumerable<Edge<T>> GetNeighbors(Node<T> node)
         {
-            if (!adj.ContainsKey(node.Id)) return Enumerable.Empty<Edge<T>>();
-            return adj[node.Id];
+            return adj.TryGetValue(node.Id, out var list) ? list : Enumerable.Empty<Edge<T>>();
         }
 
-        public Node<T> FindNode(Func<Node<T>, bool> predicate)
+        public void ClearAllEdges()
         {
-            return nodes.Values.FirstOrDefault(predicate);
+            foreach (var key in adj.Keys.ToList())
+                adj[key].Clear();
         }
 
-        public Node<T> FindNodeByValuePredicate(Func<T, bool> predicate)
-        {
-            return nodes.Values.FirstOrDefault(n => predicate(n.Value));
-        }
-
+        // ★★★ TU DIJKSTRA ORIGINAL RESTAURADO ★★★
         public Dictionary<Guid, double> Dijkstra(Node<T> source)
         {
             var dist = nodes.Keys.ToDictionary(k => k, k => double.PositiveInfinity);
-            var prev = new Dictionary<Guid, Guid?>();
-            var Q = new HashSet<Guid>(nodes.Keys);
             dist[source.Id] = 0;
 
-            while (Q.Count > 0)
+            var visited = new HashSet<Guid>();
+            var pq = new PriorityQueue<Guid, double>();
+            pq.Enqueue(source.Id, 0);
+
+            while (pq.TryDequeue(out Guid u, out _))
             {
-                Guid u = Q.OrderBy(id => dist[id]).First();
-                Q.Remove(u);
+                if (!visited.Add(u)) continue;
 
                 foreach (var e in adj[u])
                 {
@@ -91,11 +108,13 @@ namespace Proyecto__2_Datos_Arbol_Genealogico.Models
                     if (alt < dist[e.To.Id])
                     {
                         dist[e.To.Id] = alt;
-                        prev[e.To.Id] = u;
+                        pq.Enqueue(e.To.Id, alt);
                     }
                 }
             }
+
             return dist;
         }
     }
 }
+

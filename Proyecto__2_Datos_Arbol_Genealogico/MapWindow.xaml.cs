@@ -9,14 +9,15 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using IOPath = System.IO.Path;
 
 namespace Proyecto__2_Datos_Arbol_Genealogico
 {
     public partial class MapWindow : Window
     {
         private readonly FamilyTree tree;
-        private double mapWidth = 2048, mapHeight = 1024; // defaults, will adapt to image
-        private readonly List<UIElement> overlays = new List<UIElement>();
+        private double imagePixelW, imagePixelH;
+        private readonly List<UIElement> overlays = new();
 
         public MapWindow(FamilyTree familyTree)
         {
@@ -28,77 +29,90 @@ namespace Proyecto__2_Datos_Arbol_Genealogico
 
         private void LoadMapImage()
         {
-            string path = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Images", "world_map.jpg");
+            string path = IOPath.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "Resources", "Images", "mapa.jpg"
+            );
+
             if (!File.Exists(path))
             {
-                MessageBox.Show($"No se encontró la imagen de mapa en: {path}\nPor favor coloque una imagen equirectangular llamada world_map.jpg en Resources/Images.", "Imagen faltante", MessageBoxButton.OK, MessageBoxImage.Warning);
-                // fallback: create plain background
-                MapImage.Source = new BitmapImage(); // blank
-                MapCanvas.Width = 1200;
-                MapCanvas.Height = 600;
+                MessageBox.Show($"No se encontró el mapa en:\n{path}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            var bmp = new BitmapImage();
-            bmp.BeginInit();
-            bmp.UriSource = new Uri(path);
-            bmp.CacheOption = BitmapCacheOption.OnLoad;
-            bmp.EndInit();
-            MapImage.Source = bmp;
-            mapWidth = bmp.PixelWidth;
-            mapHeight = bmp.PixelHeight;
-            MapImage.Width = mapWidth;
-            MapImage.Height = mapHeight;
-            MapCanvas.Width = mapWidth;
-            MapCanvas.Height = mapHeight;
+
+            try
+            {
+                byte[] bytes = File.ReadAllBytes(path);
+                using var stream = new MemoryStream(bytes);
+
+                BitmapImage bmp = new BitmapImage();
+                bmp.BeginInit();
+                bmp.StreamSource = stream;
+                bmp.CacheOption = BitmapCacheOption.OnLoad;
+                bmp.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                bmp.EndInit();
+                bmp.Freeze();
+
+                imagePixelW = bmp.PixelWidth;
+                imagePixelH = bmp.PixelHeight;
+
+                MapImage.Source = bmp;
+                MapImage.Width = imagePixelW;
+                MapImage.Height = imagePixelH;
+                MapCanvas.Width = imagePixelW;
+                MapCanvas.Height = imagePixelH;
+
+                MapCanvas.Background = Brushes.Black;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar el mapa:\n{ex.Message}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
+
 
         private void RenderNodes()
         {
             ClearOverlays();
 
-            var nodes = tree.LocationGraph.Nodes.ToList();
-            foreach (var node in nodes)
-            {
+            foreach (var node in tree.LocationGraph.Nodes)
                 AddNodeOverlay(node);
-            }
         }
 
         private void AddNodeOverlay(Node<Person> node)
         {
             var p = node.Value;
-            var (x, y) = GeoUtils.LatLonToPixel(p.Latitude, p.Longitude, mapWidth, mapHeight);
-            // create image control with circle mask
+            var (px, py) = GeoUtils.LatLonToPixel(p.Latitude, p.Longitude, imagePixelW, imagePixelH);
+
             var img = new Image
             {
                 Width = 56,
                 Height = 56,
                 Tag = node,
-                ToolTip = $"{p.FullName}\n{p.Cedula}\n{p.Latitude}, {p.Longitude}"
+                ToolTip = $"{p.FullName}\n{p.Cedula}\n{p.Latitude},{p.Longitude}",
+                Clip = new EllipseGeometry(new Point(28, 28), 28, 28)
             };
 
             if (p.Photo != null)
             {
                 var crop = ImageHelpers.CreateSquareCrop(p.Photo, 56);
-                var resized = ImageHelpers.Resize(crop, 56, 56);
-                img.Source = resized;
+                img.Source = ImageHelpers.Resize(crop, 56, 56);
             }
             else
             {
-                // generate placeholder (solid color) as a DrawingImage
-                var drawing = new DrawingGroup();
-                drawing.Children.Add(new GeometryDrawing(new SolidColorBrush(Colors.SlateGray), null, new EllipseGeometry(new Point(28, 28), 28, 28)));
-                var dv = new DrawingImage(drawing);
-                dv.Freeze();
-                img.Source = dv;
+                img.Source = new DrawingImage(
+                    new GeometryDrawing(
+                        Brushes.SlateGray, null,
+                        new EllipseGeometry(new Point(28, 28), 28, 28)
+                    )
+                );
             }
 
-            Canvas.SetLeft(img, x - img.Width / 2);
-            Canvas.SetTop(img, y - img.Height / 2);
-            img.Cursor = System.Windows.Input.Cursors.Hand;
+            Canvas.SetLeft(img, px - img.Width / 2);
+            Canvas.SetTop(img, py - img.Height / 2);
             img.MouseLeftButtonUp += Img_MouseLeftButtonUp;
-
-            // add circular clip
-            img.Clip = new EllipseGeometry(new Point(img.Width / 2, img.Height / 2), img.Width / 2, img.Height / 2);
 
             MapCanvas.Children.Add(img);
             overlays.Add(img);
@@ -107,9 +121,7 @@ namespace Proyecto__2_Datos_Arbol_Genealogico
         private void Img_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (sender is Image img && img.Tag is Node<Person> node)
-            {
                 HighlightDistancesFrom(node);
-            }
         }
 
         private void HighlightDistancesFrom(Node<Person> node)
@@ -118,60 +130,61 @@ namespace Proyecto__2_Datos_Arbol_Genealogico
             TxtSelected.Text = $"Seleccionado: {node.Value.FullName} ({node.Value.Cedula})";
             ListDistances.Items.Clear();
 
-            var nodes = tree.LocationGraph.Nodes.ToList();
             var source = node.Value;
-            var origin = overlays.OfType<Image>().FirstOrDefault(i => (i.Tag as Node<Person>)?.Id == node.Id);
-            foreach (var other in nodes.Where(n => n.Id != node.Id))
+
+            foreach (var other in tree.LocationGraph.Nodes.Where(n => n.Id != node.Id))
             {
-                double d = GeoUtils.HaversineDistanceKm(source.Latitude, source.Longitude, other.Value.Latitude, other.Value.Longitude);
+                double d = GeoUtils.HaversineDistanceKm(
+                    source.Latitude, source.Longitude,
+                    other.Value.Latitude, other.Value.Longitude);
+
                 ListDistances.Items.Add($"{other.Value.FullName} : {d:F2} km");
-
-                // draw line from origin to other position
-                var (x1, y1) = GeoUtils.LatLonToPixel(source.Latitude, source.Longitude, mapWidth, mapHeight);
-                var (x2, y2) = GeoUtils.LatLonToPixel(other.Value.Latitude, other.Value.Longitude, mapWidth, mapHeight);
-
-                var line = new Line
-                {
-                    X1 = x1,
-                    Y1 = y1,
-                    X2 = x2,
-                    Y2 = y2,
-                    Stroke = new SolidColorBrush(Color.FromArgb(180, 60, 140, 220)),
-                    StrokeThickness = 2,
-                    StrokeDashArray = new DoubleCollection { 4, 2 }
-                };
-                MapCanvas.Children.Add(line);
-                overlays.Add(line);
-
-                // label mid-point
-                double mx = (x1 + x2) / 2;
-                double my = (y1 + y2) / 2;
-                var tb = new TextBlock
-                {
-                    Text = $"{d:F1} km",
-                    Background = new SolidColorBrush(Color.FromArgb(220, 255, 255, 255)),
-                    FontSize = 12
-                };
-                Canvas.SetLeft(tb, mx);
-                Canvas.SetTop(tb, my);
-                MapCanvas.Children.Add(tb);
-                overlays.Add(tb);
+                DrawConnectionLine(source, other.Value, d);
             }
+        }
+
+        private void DrawConnectionLine(Person p1, Person p2, double km)
+        {
+            var (x1, y1) = GeoUtils.LatLonToPixel(p1.Latitude, p1.Longitude, imagePixelW, imagePixelH);
+            var (x2, y2) = GeoUtils.LatLonToPixel(p2.Latitude, p2.Longitude, imagePixelW, imagePixelH);
+
+            var line = new Line
+            {
+                X1 = x1,
+                Y1 = y1,
+                X2 = x2,
+                Y2 = y2,
+                Stroke = Brushes.DeepSkyBlue,
+                StrokeThickness = 2,
+                StrokeDashArray = new DoubleCollection { 4, 2 }
+            };
+
+            MapCanvas.Children.Add(line);
+            overlays.Add(line);
+
+            var tb = new TextBlock
+            {
+                Text = $"{km:F1} km",
+                Background = Brushes.Black,
+                FontSize = 12
+            };
+
+            Canvas.SetLeft(tb, (x1 + x2) / 2);
+            Canvas.SetTop(tb, (y1 + y2) / 2);
+            MapCanvas.Children.Add(tb);
+            overlays.Add(tb);
         }
 
         private void ClearOverlays()
         {
-            foreach (var el in overlays) MapCanvas.Children.Remove(el);
+            foreach (var el in overlays)
+                MapCanvas.Children.Remove(el);
             overlays.Clear();
         }
 
         private void ClearLines()
         {
-            // remove everything except MapImage and node images
-            var toRemove = MapCanvas.Children.OfType<UIElement>().Where(e => !(e is Image && e != MapImage)).ToList();
-            // however we only added overlays to overlays list, so:
             ClearOverlays();
-            // readd nodes
             RenderNodes();
         }
 
@@ -183,3 +196,7 @@ namespace Proyecto__2_Datos_Arbol_Genealogico
         }
     }
 }
+
+
+
+

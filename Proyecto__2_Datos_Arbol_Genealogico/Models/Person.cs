@@ -11,8 +11,13 @@ namespace Proyecto__2_Datos_Arbol_Genealogico.Models
         public string Cedula { get; set; } = "";
         public string FirstName { get; set; } = "";
         public string LastName { get; set; } = "";
-        public double Latitude { get; set; }  
+        public double Latitude { get; set; }
+
+        public Guid? PartnerId { get; set; } = null;
+
+
         public double Longitude { get; set; }
+
         public DateTime DateOfBirth { get; set; }
         public DateTime? DateOfDeath { get; set; } = null;
         public BitmapImage Photo { get; set; } = null;

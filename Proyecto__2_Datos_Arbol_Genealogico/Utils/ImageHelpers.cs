@@ -8,7 +8,6 @@ namespace Proyecto__2_Datos_Arbol_Genealogico.Utils
 {
     public static class ImageHelpers
     {
-        // Create circular cropped bitmap from BitmapImage
         public static CroppedBitmap CreateSquareCrop(BitmapImage source, int size)
         {
             if (source == null) return null;
@@ -19,7 +18,6 @@ namespace Proyecto__2_Datos_Arbol_Genealogico.Utils
             return new CroppedBitmap(source, rect);
         }
 
-        // Resize to width/height keeping aspect ratio using TransformedBitmap
         public static BitmapSource Resize(BitmapSource source, int width, int height)
         {
             if (source == null) return null;

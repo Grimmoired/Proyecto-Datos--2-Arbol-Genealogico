@@ -11,7 +11,7 @@ namespace Proyecto__2_Datos_Arbol_Genealogico
 
         public SelectPersonWindow(FamilyTree tree, Node<Person> exclude = null)
         {
-            InitializeComponent();  // ahora será reconocido correctamente ✅
+            InitializeComponent(); 
             var list = tree.LocationGraph.Nodes
                             .Where(n => exclude == null || n.Id != exclude.Id)
                             .ToList();
