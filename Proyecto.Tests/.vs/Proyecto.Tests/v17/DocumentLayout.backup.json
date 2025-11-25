@@ -1,0 +1,54 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Bryan\\Downloads\\Proyecto-Datos--2-Arbol-Genealogico\\Proyecto.Tests\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{20A54CD6-F6A4-4DBC-A178-CC0B8931F5AF}|Proyecto.Tests.csproj|c:\\users\\bryan\\downloads\\proyecto-datos--2-arbol-genealogico\\proyecto.tests\\proyecto.tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{20A54CD6-F6A4-4DBC-A178-CC0B8931F5AF}|Proyecto.Tests.csproj|solutionrelative:proyecto.tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{20A54CD6-F6A4-4DBC-A178-CC0B8931F5AF}|Proyecto.Tests.csproj|c:\\users\\bryan\\downloads\\proyecto-datos--2-arbol-genealogico\\proyecto.tests\\unittest1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{20A54CD6-F6A4-4DBC-A178-CC0B8931F5AF}|Proyecto.Tests.csproj|solutionrelative:unittest1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Proyecto.Tests",
+              "DocumentMoniker": "C:\\Users\\Bryan\\Downloads\\Proyecto-Datos--2-Arbol-Genealogico\\Proyecto.Tests\\Proyecto.Tests.csproj",
+              "RelativeDocumentMoniker": "Proyecto.Tests.csproj",
+              "ToolTip": "C:\\Users\\Bryan\\Downloads\\Proyecto-Datos--2-Arbol-Genealogico\\Proyecto.Tests\\Proyecto.Tests.csproj",
+              "RelativeToolTip": "Proyecto.Tests.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-11-25T00:29:10.164Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "UnitTest1.cs",
+              "DocumentMoniker": "C:\\Users\\Bryan\\Downloads\\Proyecto-Datos--2-Arbol-Genealogico\\Proyecto.Tests\\UnitTest1.cs",
+              "RelativeDocumentMoniker": "UnitTest1.cs",
+              "ToolTip": "C:\\Users\\Bryan\\Downloads\\Proyecto-Datos--2-Arbol-Genealogico\\Proyecto.Tests\\UnitTest1.cs",
+              "RelativeToolTip": "UnitTest1.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAD0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-25T00:18:48.967Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
